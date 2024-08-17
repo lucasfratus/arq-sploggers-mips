@@ -14,11 +14,7 @@ class Processador:
     
     def __str__(self):
         valor_reg = ''.join([f'{nome}: {valor}' for nome, valor in self.registradores.items()])
-        return (f'PC: {self.pc}\n'
-                f'RSP: {self.rsp}\n'
-                f'RA: {self.ra}\n'
-                f'OF: {self.of}\n'
-                f'Registers: {valor_reg}')
+        return (f'PC: {self.pc}\nRSP: {self.rsp}\nRA: {self.ra}\nOF: {self.of}\nRegistradores: {valor_reg}')
 
     def definir_valor_reg(self, nome_reg, valor_reg):
         if nome_reg in self.registradores:
