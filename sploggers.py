@@ -65,7 +65,7 @@ N_LINHAS_POR_CONJUNTO = 4
 N_CONJUNTOS = 4
 
 # Configurações da memória principal
-N_BYTES_MEMORIA_PRINCIPAL = 128 # Deve ser múltiplo de 8 e maior que a memória cache
+N_BYTES_MEMORIA_PRINCIPAL = 256 # Deve ser múltiplo de 8 e maior que a memória cache
 
 
 def inicializa_memoria_cache() -> dict:
@@ -78,6 +78,33 @@ def inicializa_memoria_cache() -> dict:
 
 def inicializa_memoria_principal() -> list:
     return [0] * N_BYTES_MEMORIA_PRINCIPAL
+
+def le_instrucoes(arquivo: str) -> list:
+    with open(arquivo, 'r') as f:
+        instrucoes = f.readlines()
+    return instrucoes
+
+def decodifica_instrucao(instrucao: str) -> tuple[str, list[str]]:
+    '''
+    Recebe instruções em formato:
+        movi r6,144
+        movi r1,5
+        add r9,r1,r6
+        addi r15,r9,1 
+        movi r7,7
+        add r13,r15,r7
+        <instrução> <operando1>,<operando2>,<operando3>
+    Retorna uma tupla com a instrução e os operandos em uma lista
+    '''
+    linha = instrucao.split(' ')
+
+    operacao = linha[0]
+    if len(linha) > 1:
+        operandos = linha[1].split(',')
+    else:
+        operandos = []
+
+    return operacao, operandos
 
 def main():
 
@@ -121,3 +148,10 @@ def main():
     RSP = 0
     RA = 0
     OF = 0
+
+    # Memória cache
+    memoria_cache = inicializa_memoria_cache()
+
+    # Memória principal
+    memoria_principal = inicializa_memoria_principal()
+
