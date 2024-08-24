@@ -60,12 +60,14 @@ estado;
 """
 
 # Configurações da memória cache
-N_BYTES_POR_LINHA = 8 # Deve ser múltiplo de 8 e menor que 1024 (cada instrução ou inteiro ocupa no máximo 8 bytes)
-N_LINHAS_POR_CONJUNTO = 4
-N_CONJUNTOS = 4
+N_BYTES_POR_LINHA = 16 # Deve ser múltiplo de 8 e menor que 1024 (cada instrução ou inteiro ocupa no máximo 8 bytes)
+N_LINHAS_POR_CONJUNTO = 2
+N_CONJUNTOS = 2
 
 # Configurações da memória principal
 N_BYTES_MEMORIA_PRINCIPAL = 256 # Deve ser múltiplo de 8 e maior que a memória cache
+N_BLOCOS = N_BYTES_MEMORIA_PRINCIPAL // N_BYTES_POR_LINHA
+N_LINHAS_BLOCO = (N_BYTES_MEMORIA_PRINCIPAL // 8) // N_BLOCOS
 
 
 def inicializa_memoria_cache() -> dict:
@@ -73,7 +75,7 @@ def inicializa_memoria_cache() -> dict:
     for i in range(N_CONJUNTOS):
         conjuntos[i] = []
         for j in range(N_LINHAS_POR_CONJUNTO):
-            conjuntos[i].append([0] * N_BYTES_POR_LINHA)
+            conjuntos[i].append([-1, 0, [0] * (N_BYTES_POR_LINHA // 8)]) # [bloco, N_Acessos, [dados]]
     return conjuntos
 
 def inicializa_memoria_principal() -> list:
@@ -83,6 +85,57 @@ def le_instrucoes(arquivo: str) -> list:
     with open(arquivo, 'r') as f:
         instrucoes = f.readlines()
     return instrucoes
+
+def carrega_memoria_principal(memoria_principal: list) -> int:
+    instrucoes = le_instrucoes(input('Digite o nome do arquivo de instruções: '))
+    for i, instrucao in enumerate(instrucoes):
+        instrucao = instrucao.strip()
+        memoria_principal[i] = instrucao
+    return i + 1 # Retorna o endereço da última instrução
+
+
+def busca(endereco: int, cache: dict, memoria_principal: list) -> str:
+    '''
+    Recebe o contador de programa e a memória cache de instruções
+    Retorna a instrução que está no endereço PC
+    Segue a política de substituição LFU (Least Frequently Used)
+    '''
+    bloco = endereco // N_LINHAS_BLOCO
+    conjunto = bloco % N_CONJUNTOS
+
+    for linha in cache[conjunto]:
+        if linha[0] == bloco:
+            print(f'hit')
+            linha[1] += 1
+            return linha[2][endereco % N_LINHAS_BLOCO]
+
+    # Se não encontrou a instrução na cache, busca na memória principal
+    print(f'miss')
+    bloco_dados = []
+    for i in range(N_LINHAS_BLOCO):
+        bloco_dados.append(memoria_principal[bloco * N_LINHAS_BLOCO + i])
+
+    # Insere a instrução na cache
+
+    # Verifica se há espaço vazio na cache
+    for linha in cache[conjunto]:
+        if linha[0] == -1:
+            linha[0] = bloco
+            linha[1] = 1
+            linha[2] = bloco_dados
+            return bloco_dados[endereco % N_LINHAS_BLOCO]
+        
+    # Se não houver espaço vazio, substitui a linha com menor número de acessos
+    menor_acessos = cache[conjunto][0][1]
+    linha_menor_acessos = 0
+    for i, linha in enumerate(cache[conjunto]):
+        if linha[1] < menor_acessos:
+            menor_acessos = linha[1]
+            linha_menor_acessos = i
+    cache[conjunto][linha_menor_acessos][0] = bloco
+    cache[conjunto][linha_menor_acessos][1] = 1
+    cache[conjunto][linha_menor_acessos][2] = bloco_dados
+    return bloco_dados[endereco % N_LINHAS_BLOCO]
 
 def decodifica_instrucao(instrucao: str) -> tuple[str, list[str]]:
     '''
@@ -106,52 +159,138 @@ def decodifica_instrucao(instrucao: str) -> tuple[str, list[str]]:
 
     return operacao, operandos
 
+def executa_instrucao(instrucao: str, memoria_principal: list, cache_dados: dict,  operandos: list[str], registradores: dict, PC: int, RSP: int, RA: int, OF: int) -> tuple[dict, int, int, int, int]:
+    '''
+    Executa a instrução com os operandos fornecidos.
+    '''
+    match instrucao:
+        case 'add':
+            registradores[operandos[0]] = registradores[operandos[1]] + registradores[operandos[2]]
+            if registradores[operandos[0]] > 2**32 - 1 or registradores[operandos[0]] < -2**32:
+                OF = 1
+        case 'addi':
+            registradores[operandos[0]] = registradores[operandos[1]] + int(operandos[2])
+            if registradores[operandos[0]] > 2**32 - 1 or registradores[operandos[0]] < -2**32:
+                OF = 1
+        case 'sub':
+            registradores[operandos[0]] = registradores[operandos[1]] - registradores[operandos[2]]
+            if registradores[operandos[0]] > 2**32 - 1 or registradores[operandos[0]] < -2**32:
+                OF = 1
+        case 'subi':
+            registradores[operandos[0]] = registradores[operandos[1]] - int(operandos[2])
+            if registradores[operandos[0]] > 2**32 - 1 or registradores[operandos[0]] < -2**32:
+                OF = 1
+        case 'mul':
+            registradores[operandos[0]] = registradores[operandos[1]] * registradores[operandos[2]]
+            if registradores[operandos[0]] > 2**32 - 1 or registradores[operandos[0]] < -2**32:
+                OF = 1
+        case 'div':
+            registradores[operandos[0]] = registradores[operandos[1]] // registradores[operandos[2]]
+        case 'not': # Inverte os bits
+            registradores[operandos[0]] = ~registradores[operandos[1]]
+        case 'or':
+            registradores[operandos[0]] = registradores[operandos[1]] | registradores[operandos[2]]
+        case 'and':
+            registradores[operandos[0]] = registradores[operandos[1]] & registradores[operandos[2]]
+        case 'mov':
+            registradores[operandos[0]] = registradores[operandos[1]]
+        case 'movi':
+            registradores[operandos[0]] = int(operandos[1])
+        case 'blti':
+            if registradores[operandos[0]] < int(operandos[1]):
+                PC = int(operandos[2])
+        case 'bgti':
+            if registradores[operandos[0]] > int(operandos[1]):
+                PC = int(operandos[2])
+        case 'beqi':
+            if registradores[operandos[0]] == int(operandos[1]):
+                PC = int(operandos[2])
+        case 'blt':
+            if registradores[operandos[0]] < registradores[operandos[1]]:
+                PC = registradores[operandos[2]]
+        case 'bgt':
+            if registradores[operandos[0]] > registradores[operandos[1]]:
+                PC = registradores[operandos[2]]
+        case 'beq':
+            if registradores[operandos[0]] == registradores[operandos[1]]:
+                PC = registradores[operandos[2]]
+        case 'jr':
+            PC = registradores[operandos[0]]
+        case 'jof':
+            if OF:
+                PC = registradores[operandos[0]]
+        case 'jal':
+            RSP -= 1
+            memoria_principal[RSP] = PC
+            RA = PC
+            PC = registradores[operandos[0]]
+        case 'ret':
+            if RSP < N_BYTES_MEMORIA_PRINCIPAL // 8:
+                PC = memoria_principal[RSP]
+                memoria_principal[RSP] = 0
+                RSP += 1
+            else:
+                raise Exception('Pilha vazia, função não pode ser retornada')
+        case 'lw':
+            reg_end = operandos[1].split('(')[1].split(')')[0] # Registrador de endereço dentro dos parênteses
+            end = int(operandos[1].split('(')[0]) + registradores[reg_end] # Endereço final -> valor do registrador + deslocamento
+            
+            registradores[operandos[0]] = busca(end, cache_dados, memoria_principal)
+        case 'sw':
+            reg_end = operandos[1].split('(')[1].split(')')[0] # Registrador de endereço dentro dos parênteses
+            end = int(operandos[1].split('(')[0]) + registradores[reg_end] # Endereço final -> valor do registrador + deslocamento
+
+            bloco = end // N_LINHAS_BLOCO
+            conjunto = bloco % N_CONJUNTOS
+
+            for linha in cache_dados[conjunto]: # Verifica se o bloco está na cache
+                if linha[0] == bloco:
+                    linha[2][end % N_LINHAS_BLOCO] = registradores[operandos[0]] # Atualiza o valor na cache
+                    break
+            memoria_principal[end] = registradores[operandos[0]] # Atualiza o valor na memória principal
+            
+
+    return registradores, PC, RSP, RA, OF
+
 def main():
 
     # Variáveis globais
     # Registradores de uso geral
-    r0 = 0
-    r1 = 0
-    r2 = 0
-    r3 = 0
-    r4 = 0
-    r5 = 0
-    r6 = 0
-    r7 = 0
-    r8 = 0
-    r9 = 0
-    r10 = 0
-    r11 = 0
-    r12 = 0
-    r13 = 0
-    r14 = 0
-    r15 = 0
-    r16 = 0
-    r17 = 0
-    r18 = 0
-    r19 = 0
-    r20 = 0
-    r21 = 0
-    r22 = 0
-    r23 = 0
-    r24 = 0
-    r25 = 0
-    r26 = 0
-    r27 = 0
-    r28 = 0
-    r29 = 0
-    r30 = 0
-    r31 = 0
+    registradores = {f'r{i}': 0 for i in range(32)}
+    registradores['RSA'] = 0 # Registrador 'Safe address' para auxiliar instruções de acesso à memória -> Armazena a linha final dos endereços utilizados para as instruções
 
     # Registradores de estado/uso específico
     PC = 0
-    RSP = 0
+    RSP = N_BYTES_MEMORIA_PRINCIPAL // 8 # Ponteiro de pilha, inicia em len(tamanho_memoria_principal) -> fora da memória
     RA = 0
     OF = 0
 
-    # Memória cache
-    memoria_cache = inicializa_memoria_cache()
+    # Memória cache -> segue o modelo de cache associativa por conjunto e politica de substituição LFU (Least Frequently Used)
+    cache_dados = inicializa_memoria_cache()
+    cache_instr = inicializa_memoria_cache()
 
     # Memória principal
     memoria_principal = inicializa_memoria_principal()
+    registradores['RSA'] = carrega_memoria_principal(memoria_principal)
+    
+    # Leitura das instruções
+    while PC < registradores['RSA']:
+        linha = busca(PC, cache_instr, memoria_principal) # Busca a instrução na memória cache de instruções
+        print(linha)
+        instrucao, operandos = decodifica_instrucao(linha)
+        registradores, PC, RSP, RA, OF = executa_instrucao(instrucao, memoria_principal, cache_dados, operandos, registradores, PC, RSP, RA, OF)
+        
+        print('\n')
+        print(f'PC: {PC}\nRSP: {RSP}\nRA: {RA}\nOF: {OF}\n')
+        print(registradores)
+        print(memoria_principal)
+        print(cache_dados)
+        print(cache_instr)
+        print('\n')
 
+
+        PC += 1
+        
+
+if __name__ == '__main__':
+    main()
