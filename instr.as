@@ -1,9 +1,6 @@
-movi r1,10
-movi r2,5
-movi r11,300
-sw r1,0(RSA)
-addi r11,r11,1
-addi r1,r1,3
-blt r11,r2,3
-movi r11,3
-lw r4,1(RSA)
+movi r1,5
+jr r1
+addi r10,r10,7
+sub r10,r10,r9
+ret
+jal 2

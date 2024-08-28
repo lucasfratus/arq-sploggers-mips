@@ -79,7 +79,7 @@ def inicializa_memoria_cache() -> dict:
     return conjuntos
 
 def inicializa_memoria_principal() -> list:
-    return [0] * N_BYTES_MEMORIA_PRINCIPAL
+    return [0] * (N_BYTES_MEMORIA_PRINCIPAL // 8)
 
 def le_instrucoes(arquivo: str) -> list:
     with open(arquivo, 'r') as f:
@@ -198,32 +198,32 @@ def executa_instrucao(instrucao: str, memoria_principal: list, cache_dados: dict
             registradores[operandos[0]] = int(operandos[1])
         case 'blti':
             if registradores[operandos[0]] < int(operandos[1]):
-                PC = int(operandos[2])
+                PC = int(operandos[2]) - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'bgti':
             if registradores[operandos[0]] > int(operandos[1]):
-                PC = int(operandos[2])
+                PC = int(operandos[2]) - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'beqi':
             if registradores[operandos[0]] == int(operandos[1]):
-                PC = int(operandos[2])
+                PC = int(operandos[2]) - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'blt':
             if registradores[operandos[0]] < registradores[operandos[1]]:
-                PC = registradores[operandos[2]]
+                PC = registradores[operandos[2]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'bgt':
             if registradores[operandos[0]] > registradores[operandos[1]]:
-                PC = registradores[operandos[2]]
+                PC = registradores[operandos[2]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'beq':
             if registradores[operandos[0]] == registradores[operandos[1]]:
-                PC = registradores[operandos[2]]
+                PC = registradores[operandos[2]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'jr':
-            PC = registradores[operandos[0]]
+            PC = registradores[operandos[0]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'jof':
             if OF:
-                PC = registradores[operandos[0]]
+                PC = registradores[operandos[0]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'jal':
             RSP -= 1
             memoria_principal[RSP] = PC
             RA = PC
-            PC = registradores[operandos[0]]
+            PC = int(operandos[0]) - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'ret':
             if RSP < N_BYTES_MEMORIA_PRINCIPAL // 8:
                 PC = memoria_principal[RSP]
@@ -280,6 +280,7 @@ def main():
         instrucao, operandos = decodifica_instrucao(linha)
         registradores, PC, RSP, RA, OF = executa_instrucao(instrucao, memoria_principal, cache_dados, operandos, registradores, PC, RSP, RA, OF)
         
+        PC += 1
         print('\n')
         print(f'PC: {PC}\nRSP: {RSP}\nRA: {RA}\nOF: {OF}\n')
         print(registradores)
@@ -288,8 +289,13 @@ def main():
         print(cache_instr)
         print('\n')
 
-
-        PC += 1
+    print('\n')
+    print(f'PC: {PC}\nRSP: {RSP}\nRA: {RA}\nOF: {OF}\n')
+    print(registradores)
+    print(memoria_principal)
+    print(cache_dados)
+    print(cache_instr)
+    print('\n')
         
 
 if __name__ == '__main__':
