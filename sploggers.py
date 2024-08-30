@@ -271,32 +271,47 @@ def main():
 
     # Memória principal
     memoria_principal = inicializa_memoria_principal()
-    registradores['RSA'] = carrega_memoria_principal(memoria_principal)
+    RSA = carrega_memoria_principal(memoria_principal)
     
     # Leitura das instruções
-    while PC < registradores['RSA']:
+    while PC < RSA:
         linha = busca(PC, cache_instr, memoria_principal) # Busca a instrução na memória cache de instruções
-        print(linha)
         instrucao, operandos = decodifica_instrucao(linha)
         registradores, PC, RSP, RA, OF = executa_instrucao(instrucao, memoria_principal, cache_dados, operandos, registradores, PC, RSP, RA, OF)
         
         PC += 1
         print('\n')
-        print(f'PC: {PC}\nRSP: {RSP}\nRA: {RA}\nOF: {OF}\n')
-        print(registradores)
-        print(memoria_principal)
-        print(cache_dados)
-        print(cache_instr)
-        print('\n')
+        print('-' * 14 + f' PC = {str(PC)} ' + '-' * 14)
 
-    print('\n')
-    print(f'PC: {PC}\nRSP: {RSP}\nRA: {RA}\nOF: {OF}\n')
-    print(registradores)
-    print(memoria_principal)
-    print(cache_dados)
-    print(cache_instr)
-    print('\n')
-        
+        print(f'\nInstrução: {linha}\n')
+
+        print('=' * 14 + ' Registradores ' + '=' * 14)
+        print('~~~~~~ Registradores de Estado/Controle ~~~~~~')
+        print(f'RSP = {str(RSP)}  |  RA = {str(RA)}  |  OF = {str(OF)} |  RSA = {str(registradores["RSA"])}')
+
+        print('\n~~~~~~ Registradores de Uso Geral ~~~~~~')
+        for i in range(8):
+            print(f'r{i}: {registradores[f"r{i}"]}  |  r{i + 8}: {registradores[f"r{i + 8}"]}  |  r{i + 16}: {registradores[f"r{i + 16}"]}  |  r{i + 24}: {registradores[f"r{i + 24}"]}')
+
+        print('\n' + '=' * 14 + ' Cache de Dados ' + '=' * 14)
+        for conjunto in cache_dados:
+            print(f'--- Conjunto {conjunto} ---')
+            for linha in cache_dados[conjunto]:
+                print(f'Bloco Armazenado: {linha[0]}  |  N_Acessos: {linha[1]}  |  Dados: {linha[2]}')
+            print('')
+
+        print('=' * 14 + ' Cache de Instruções ' + '=' * 14)
+        for conjunto in cache_instr:
+            print(f'--- Conjunto {conjunto} ---')
+            for linha in cache_instr[conjunto]:
+                print(f'Bloco Armazenado: {linha[0]}  |  N_Acessos: {linha[1]}  |  Dados: {linha[2]}')
+            print('')
+
+        print('=' * 14 + ' Memória Principal ' + '=' * 14)
+        for i, dado in enumerate(memoria_principal):
+            if dado != 0:
+                print(f'Endereço {i}: {dado}')
+
 
 if __name__ == '__main__':
     main()
