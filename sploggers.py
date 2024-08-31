@@ -1,3 +1,5 @@
+import io
+
 # Simulador de Arquitetura de Computadores
 
 """ 
@@ -59,6 +61,7 @@ Saídas:
 estado;
 """
 
+'''
 # Configurações da memória cache
 N_BYTES_POR_LINHA = 16 # Deve ser múltiplo de 8 e menor que 1024 (cada instrução ou inteiro ocupa no máximo 8 bytes)
 N_LINHAS_POR_CONJUNTO = 2
@@ -68,6 +71,24 @@ N_CONJUNTOS = 2
 N_BYTES_MEMORIA_PRINCIPAL = 256 # Deve ser múltiplo de 8 e maior que a memória cache
 N_BLOCOS = N_BYTES_MEMORIA_PRINCIPAL // N_BYTES_POR_LINHA
 N_LINHAS_BLOCO = (N_BYTES_MEMORIA_PRINCIPAL // 8) // N_BLOCOS
+'''
+
+def leitura_arquivo_configuracao():
+    arq_configuracao = open('arq_configuracao.txt', 'r')
+    linha = arq_configuracao.readlines()
+
+    global N_BYTES_MEMORIA_PRINCIPAL
+    N_BYTES_MEMORIA_PRINCIPAL = int(linha[1].split('=')[1])
+
+    global N_BYTES_POR_LINHA
+    N_BYTES_POR_LINHA = int(linha[4].split('=')[1])
+
+    global N_LINHAS_POR_CONJUNTO
+    N_LINHAS_POR_CONJUNTO = int(linha[6].split('=')[1])
+
+    global N_CONJUNTOS
+    N_CONJUNTOS = int(linha[8].split('=')[1])
+
 
 
 def inicializa_memoria_cache() -> dict:
