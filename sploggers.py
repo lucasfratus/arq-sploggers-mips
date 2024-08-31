@@ -61,17 +61,17 @@ Saídas:
 estado;
 """
 
-'''
+
 # Configurações da memória cache
-N_BYTES_POR_LINHA = 16 # Deve ser múltiplo de 8 e menor que 1024 (cada instrução ou inteiro ocupa no máximo 8 bytes)
-N_LINHAS_POR_CONJUNTO = 2
-N_CONJUNTOS = 2
+# N_BYTES_POR_LINHA = 16 # Deve ser múltiplo de 8 e menor que 1024 (cada instrução ou inteiro ocupa no máximo 8 bytes)
+# N_LINHAS_POR_CONJUNTO = 2
+# N_CONJUNTOS = 2
 
 # Configurações da memória principal
-N_BYTES_MEMORIA_PRINCIPAL = 256 # Deve ser múltiplo de 8 e maior que a memória cache
+# N_BYTES_MEMORIA_PRINCIPAL = 256 # Deve ser múltiplo de 8 e maior que a memória cache
 N_BLOCOS = N_BYTES_MEMORIA_PRINCIPAL // N_BYTES_POR_LINHA
 N_LINHAS_BLOCO = (N_BYTES_MEMORIA_PRINCIPAL // 8) // N_BLOCOS
-'''
+
 
 def leitura_arquivo_configuracao():
     arq_configuracao = open('arq_configuracao.txt', 'r')
@@ -276,6 +276,7 @@ def executa_instrucao(instrucao: str, memoria_principal: list, cache_dados: dict
 def main():
 
     # Variáveis globais
+    leitura_arquivo_configuracao() # Lê as configurações das memórias
     # Registradores de uso geral
     registradores = {f'r{i}': 0 for i in range(32)}
     registradores['RSA'] = 0 # Registrador 'Safe address' para auxiliar instruções de acesso à memória -> Armazena a linha final dos endereços utilizados para as instruções
