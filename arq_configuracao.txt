@@ -1,0 +1,9 @@
+####  Configurações da memória principal // Deve ser multiplo de 8 e maior que a memória cache ####
+MEMORIA_PRINCIPAL=
+#### Configurações da memória cache ####
+# Número de bytes por linha // Deve ser múltiplo de 8 e menor que 1024 (cada instrução ou inteiro ocupa no máximo 8 bytes)
+N_BYTES_POR_LINHA= 
+# Número de linhas por conjunto
+N_LINHAS_POR_CONJUNTO= 
+# Número de conjuntos
+N_CONJUNTOS= 

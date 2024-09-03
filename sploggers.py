@@ -82,7 +82,7 @@ def leitura_arquivo_configuracao():
 
     global N_BYTES_POR_LINHA
     N_BYTES_POR_LINHA = int(linha[4].split('=')[1])
-
+    
     global N_LINHAS_POR_CONJUNTO
     N_LINHAS_POR_CONJUNTO = int(linha[6].split('=')[1])
 
