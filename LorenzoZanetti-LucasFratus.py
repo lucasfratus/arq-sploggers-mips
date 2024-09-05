@@ -69,11 +69,13 @@ estado;
 
 # Configurações da memória principal
 # N_BYTES_MEMORIA_PRINCIPAL = 256 # Deve ser múltiplo de 8 e maior que a memória cache
-N_BLOCOS = N_BYTES_MEMORIA_PRINCIPAL // N_BYTES_POR_LINHA
-N_LINHAS_BLOCO = (N_BYTES_MEMORIA_PRINCIPAL // 8) // N_BLOCOS
+
 
 
 def leitura_arquivo_configuracao():
+    '''
+    É necessário que o arquivo de configuração esteja no mesmo diretório que o arquivo principal e que o nome seja 'arq_configuracao.txt'
+    '''
     arq_configuracao = open('arq_configuracao.txt', 'r')
     linha = arq_configuracao.readlines()
 
@@ -88,8 +90,12 @@ def leitura_arquivo_configuracao():
 
     global N_CONJUNTOS
     N_CONJUNTOS = int(linha[8].split('=')[1])
-
-
+    
+    global N_BLOCOS
+    N_BLOCOS = N_BYTES_MEMORIA_PRINCIPAL // N_BYTES_POR_LINHA
+    
+    global N_LINHAS_BLOCO
+    N_LINHAS_BLOCO = (N_BYTES_MEMORIA_PRINCIPAL // 8) // N_BLOCOS
 
 def inicializa_memoria_cache() -> dict:
     conjuntos: dict = {}
@@ -99,13 +105,16 @@ def inicializa_memoria_cache() -> dict:
             conjuntos[i].append([-1, 0, [0] * (N_BYTES_POR_LINHA // 8)]) # [bloco, N_Acessos, [dados]]
     return conjuntos
 
+
 def inicializa_memoria_principal() -> list:
     return [0] * (N_BYTES_MEMORIA_PRINCIPAL // 8)
+
 
 def le_instrucoes(arquivo: str) -> list:
     with open(arquivo, 'r') as f:
         instrucoes = f.readlines()
     return instrucoes
+
 
 def carrega_memoria_principal(memoria_principal: list) -> int:
     instrucoes = le_instrucoes(input('Digite o nome do arquivo de instruções: '))
@@ -158,6 +167,7 @@ def busca(endereco: int, cache: dict, memoria_principal: list) -> str:
     cache[conjunto][linha_menor_acessos][2] = bloco_dados
     return bloco_dados[endereco % N_LINHAS_BLOCO]
 
+
 def decodifica_instrucao(instrucao: str) -> tuple[str, list[str]]:
     '''
     Recebe instruções em formato:
@@ -179,6 +189,7 @@ def decodifica_instrucao(instrucao: str) -> tuple[str, list[str]]:
         operandos = []
 
     return operacao, operandos
+
 
 def executa_instrucao(instrucao: str, memoria_principal: list, cache_dados: dict,  operandos: list[str], registradores: dict, PC: int, RSP: int, RA: int, OF: int) -> tuple[dict, int, int, int, int]:
     '''
@@ -272,6 +283,7 @@ def executa_instrucao(instrucao: str, memoria_principal: list, cache_dados: dict
             
 
     return registradores, PC, RSP, RA, OF
+
 
 def main():
 
