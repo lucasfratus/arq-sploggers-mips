@@ -135,12 +135,12 @@ def busca(endereco: int, cache: dict, memoria_principal: list) -> str:
 
     for linha in cache[conjunto]:
         if linha[0] == bloco:
-            print(f'hit')
+            print(f'Hit')
             linha[1] += 1
             return linha[2][endereco % N_LINHAS_BLOCO]
 
     # Se não encontrou a instrução na cache, busca na memória principal
-    print(f'miss')
+    print(f'Miss')
     bloco_dados = []
     for i in range(N_LINHAS_BLOCO):
         bloco_dados.append(memoria_principal[bloco * N_LINHAS_BLOCO + i])
@@ -227,6 +227,7 @@ def executa_instrucao(instrucao: str, memoria_principal: list, cache_dados: dict
         case 'mov':
             registradores[operandos[0]] = registradores[operandos[1]]
         case 'movi':
+            print(operandos[0])
             registradores[operandos[0]] = int(operandos[1])
         case 'blti':
             if registradores[operandos[0]] < int(operandos[1]):
@@ -238,8 +239,8 @@ def executa_instrucao(instrucao: str, memoria_principal: list, cache_dados: dict
             if registradores[operandos[0]] == int(operandos[1]):
                 PC = int(operandos[2]) - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'blt':
-            if registradores[operandos[0]] < registradores[operandos[1]]:
-                PC = registradores[operandos[2]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
+            if registradores[operandos[0]] < registradores[operandos[1]]:   
+                PC = int(operandos[2]) - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'bgt':
             if registradores[operandos[0]] > registradores[operandos[1]]:
                 PC = registradores[operandos[2]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
@@ -247,10 +248,10 @@ def executa_instrucao(instrucao: str, memoria_principal: list, cache_dados: dict
             if registradores[operandos[0]] == registradores[operandos[1]]:
                 PC = registradores[operandos[2]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'jr':
-            PC = registradores[operandos[0]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
+            PC = registradores[operandos[2]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'jof':
             if OF:
-                PC = registradores[operandos[0]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
+                PC = registradores[operandos[2]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'jal':
             RSP -= 1
             memoria_principal[RSP] = PC
@@ -272,6 +273,7 @@ def executa_instrucao(instrucao: str, memoria_principal: list, cache_dados: dict
             reg_end = operandos[1].split('(')[1].split(')')[0] # Registrador de endereço dentro dos parênteses
             end = int(operandos[1].split('(')[0]) + registradores[reg_end] # Endereço final -> valor do registrador + deslocamento
 
+
             bloco = end // N_LINHAS_BLOCO
             conjunto = bloco % N_CONJUNTOS
 
@@ -279,6 +281,7 @@ def executa_instrucao(instrucao: str, memoria_principal: list, cache_dados: dict
                 if linha[0] == bloco:
                     linha[2][end % N_LINHAS_BLOCO] = registradores[operandos[0]] # Atualiza o valor na cache
                     break
+
             memoria_principal[end] = registradores[operandos[0]] # Atualiza o valor na memória principal
             
 
