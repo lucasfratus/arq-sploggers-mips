@@ -97,6 +97,7 @@ def leitura_arquivo_configuracao():
     global N_LINHAS_BLOCO
     N_LINHAS_BLOCO = (N_BYTES_MEMORIA_PRINCIPAL // 8) // N_BLOCOS
 
+
 def inicializa_memoria_cache() -> dict:
     conjuntos: dict = {}
     for i in range(N_CONJUNTOS):
@@ -227,7 +228,6 @@ def executa_instrucao(instrucao: str, memoria_principal: list, cache_dados: dict
         case 'mov':
             registradores[operandos[0]] = registradores[operandos[1]]
         case 'movi':
-            print(operandos[0])
             registradores[operandos[0]] = int(operandos[1])
         case 'blti':
             if registradores[operandos[0]] < registradores[operandos[1]]:
@@ -240,10 +240,10 @@ def executa_instrucao(instrucao: str, memoria_principal: list, cache_dados: dict
                 PC = int(operandos[2]) - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'blt':
             if registradores[operandos[0]] < registradores[operandos[1]]:   
-                PC = registradores[f'r{operandos[2]}'] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
+                PC = registradores[operandos[2]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'bgt':
             if registradores[operandos[0]] > registradores[operandos[1]]:
-                PC = registradores[f'r{operandos[2]}'] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
+                PC = registradores[operandos[2]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'beq':
             if registradores[operandos[0]] == registradores[operandos[1]]:
                 PC = registradores[operandos[2]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
