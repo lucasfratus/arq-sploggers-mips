@@ -248,7 +248,7 @@ def executa_instrucao(instrucao: str, memoria_principal: list, cache_dados: dict
             if registradores[operandos[0]] == registradores[operandos[1]]:
                 PC = registradores[operandos[2]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'jr':
-            PC = registradores[operandos[2]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
+            PC = registradores[operandos[0]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
         case 'jof':
             if OF:
                 PC = registradores[operandos[2]] - 1 # Decrementa 1 pois o PC é incrementado em 1 no final do ciclo
